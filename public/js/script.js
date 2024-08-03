@@ -2,10 +2,19 @@ const socket = io();
 
 // Check for geolocation support and watch position
 if (navigator.geolocation) {
-    navigator.geolocation.watchPosition((position) => {
-        const { latitude, longitude } = position.coords;
-        socket.emit("send-location", { latitude, longitude });
-    },
+    /**
+     * Watches the device's current position and sends the location coordinates
+     * to the server via a socket connection.
+     * 
+     * @param {PositionCallback} successCallback - A callback function that takes a Position object as its sole input parameter.
+     * @param {PositionErrorCallback} errorCallback - A callback function that takes a PositionError object as its sole input parameter.
+     * @param {PositionOptions} options - An optional PositionOptions object.
+     */
+    navigator.geolocation.watchPosition(
+        (position) => {
+            const { latitude, longitude } = position.coords;
+            socket.emit("send-location", { latitude, longitude });
+        },
         (error) => {
             console.log(error);
         },
@@ -13,7 +22,8 @@ if (navigator.geolocation) {
             enableHighAccuracy: true,
             timeout: 5000,
             maximumAge: 0,
-        });
+        }
+    );
 } else {
     console.log("Geolocation is not supported by this browser.");
 }
@@ -43,9 +53,14 @@ socket.on("receive-location", (data) => {
     }
 });
 
+/**
+ * Event listener for when a user disconnects.
+ * Removes the marker associated with the user from the map.
+ * @param {string} id - The unique identifier of the disconnected user.
+ */
 socket.on("user-disconnected", (id) => {
     if (markers[id]) {
         map.removeLayer(markers[id]);
-        delete markers[id]
+        delete markers[id];
     }
 })
